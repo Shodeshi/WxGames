@@ -7,7 +7,14 @@ var BackGroundLayer = cc.Layer.extend({
         this.init();
     },
     init : function(){
-      //  this._super(cc.color(255, 255, 255, 180));
-        this.setBackGroundColor(cc.color(255, 255, 255, 180));
+        this._super();
+        var bg = cc.Sprite.create(res.bg);
+        bg.attr({
+            anchorX : 0.5,
+            anchorY : 0.5,
+            x : cc.winSize.width/2,
+            y : cc.winSize.height/2
+        });
+        this.addChild(bg);
     }
 });

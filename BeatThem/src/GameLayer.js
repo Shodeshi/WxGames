@@ -1,5 +1,5 @@
 /**
- * Created by tyang on 8/21/2014.
+ * Created by Shodeshi on 8/21/2014.
  */
 var GameLayer = cc.Layer.extend({
     ctor : function(){

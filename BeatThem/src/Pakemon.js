@@ -1,5 +1,5 @@
 /**
- * Created by tyang on 8/21/2014.
+ * Created by Shodeshi on 8/21/2014.
  */
 var Pakemon = cc.Class.extend({
     sprite: null,
