@@ -3,9 +3,10 @@
  */
 if(typeof SpriteTag == "undefined") {
     var SpriteTag = {};
-    SpriteTag.falseItem = 0;
-    SpriteTag.trueItem = 1;
+    SpriteTag.itemTagA = 0;
+    SpriteTag.itemTagB = 1;
 };
 
-var itemWidth = 60;
-var itemHeight = 60;
+var itemWidth = 50;
+var itemHeight = 50;
+var maxNum = 5;
