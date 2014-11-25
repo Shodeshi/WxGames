@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+
+    <script src="src/WSController.js"></script>
+    <script type="text/javascript">
+        function init(){
+            WSController.init();
+        }
+        function login(){
+            WSController.sendMessage("login");
+            WSController.registerEvent("login", function (){
+                console.log("success!");
+            });
+        }
+        function test(){
+            var Obj = {};
+            Obj['event'] = 'event';
+            Obj['callback'] = login;
+
+            console.log(Obj.event);
+            console.log(Obj.callback);
+            Obj.callback();
+        }
+    </script>
+</head>
+<body>
+    <input id="name"/>
+    <button id="initBtn" name="init" onclick="init()">init</button>
+    <button id="login" name="login" onclick="login()">login</button>
+    <button id="test" name="test" onclick="test()">test</button>
+</body>
+</html>
