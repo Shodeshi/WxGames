@@ -10,10 +10,15 @@
             WSController.init();
         }
         function login(){
-            WSController.sendMessage("login");
+            var request = {
+                event: "login",
+                userName: document.getElementById("name").value
+            };
+
             WSController.registerEvent("login", function (){
                 console.log("success!");
             });
+            WSController.sendMessage(JSON.stringify(request));
         }
         function test(){
             var Obj = {};
