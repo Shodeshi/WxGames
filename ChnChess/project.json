@@ -14,6 +14,10 @@
         "src/resource.js",
         "src/BackGroundLayer.js",
         "src/MenuScene.js",
+        "src/GameScene.js",
+        "src/InputLayer.js",
+        "src/WSController.js",
+        "src/Logger.js",
         "src/Global.js"
     ]
 }
