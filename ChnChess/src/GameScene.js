@@ -13,6 +13,7 @@ var GameScene = cc.Scene.extend({
     onEnter: function () {
         this._super();
         this.addChild(new BackGroundLayer());
+        this.addChild(new GameLayer());
 
         // Build parameter for login request
         var params = new Object();

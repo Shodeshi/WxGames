@@ -15,7 +15,9 @@
         "src/BackGroundLayer.js",
         "src/MenuScene.js",
         "src/GameScene.js",
+        "src/GameLayer.js",
         "src/InputLayer.js",
+        "src/Chess.js",
         "src/WSController.js",
         "src/Logger.js",
         "src/Global.js"
