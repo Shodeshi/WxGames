@@ -11,7 +11,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import shodeshi.model.User;
+import shodeshi.db.model.Room;
+import shodeshi.db.model.User;
 
 /**
  *
@@ -55,9 +56,11 @@ public class Test {
     public static void main(String args[]) {
         try {
             GameDAO dao = new DefaultGameDAO();
-            User user = new User();
-            user.setName("test");
-            dao.addUser(user);
+//            User user = new User();
+//            user.setName("test");
+//            dao.addUser(user);
+            Room room = new Room();
+            dao.insertRoom(room);
 
         } catch (Exception ex) {
             Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);

@@ -1,6 +1,7 @@
 package shodeshi.db;
 
-import shodeshi.model.User;
+import shodeshi.db.model.Room;
+import shodeshi.db.model.User;
 
 /**
  *
@@ -9,4 +10,7 @@ import shodeshi.model.User;
 public interface GameDAO {
     public User getUserByName(String name);
     public void addUser(User user);
+    public void insertRoom(Room room);
+    public Room getRoomById(Long id);
+    public void updateRoom(Room room);
 }
