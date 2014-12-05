@@ -22,6 +22,8 @@ var WSController = WSController || {
             };
             WSController.webSocket.onmessage = function (event) {
                 var message = JSON.parse(event.data);
+                Logger.log("Server response: " + event.data);
+
                 var eventName = message.event;
                 if (WSController.events[eventName])
                     WSController.events[eventName]();

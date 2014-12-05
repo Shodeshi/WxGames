@@ -59,8 +59,7 @@ public class Test {
 //            User user = new User();
 //            user.setName("test");
 //            dao.addUser(user);
-            Room room = new Room();
-            dao.insertRoom(room);
+            dao.getRoomUserRelByRoomId(1l);
 
         } catch (Exception ex) {
             Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);

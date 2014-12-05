@@ -12,10 +12,7 @@ package shodeshi.db.model;
 public class Room {
 
     private Long id;
-    private Long playerId1;
-    private Long playerId2;
-    private Integer isReady1;
-    private Integer isReady2;
+    private String name;
 
     public Long getId() {
         return id;
@@ -25,35 +22,13 @@ public class Room {
         this.id = id;
     }
 
-    public Long getPlayerId1() {
-        return playerId1;
+    public String getName() {
+        return name;
     }
 
-    public void setPlayerId1(Long playerId1) {
-        this.playerId1 = playerId1;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public Long getPlayerId2() {
-        return playerId2;
-    }
-
-    public void setPlayerId2(Long playerId2) {
-        this.playerId2 = playerId2;
-    }
-
-    public Integer getIsReady1() {
-        return isReady1;
-    }
-
-    public void setIsReady1(Integer isReady1) {
-        this.isReady1 = isReady1;
-    }
-
-    public Integer getIsReady2() {
-        return isReady2;
-    }
-
-    public void setIsReady2(Integer isReady2) {
-        this.isReady2 = isReady2;
-    }
+    
 }

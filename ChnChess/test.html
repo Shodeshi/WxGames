@@ -30,6 +30,13 @@
             console.log(Obj.callback);
             Obj.callback();
         }
+        function reset(){
+            var request = {
+                event: "reset"
+            }
+
+            WSController.sendMessage(JSON.stringify(request));
+        }
     </script>
 </head>
 <body>
@@ -37,5 +44,6 @@
     <button id="initBtn" name="init" onclick="init()">init</button>
     <button id="login" name="login" onclick="login()">login</button>
     <button id="test" name="test" onclick="test()">test</button>
+    <button id="reset" name="reset" onclick="reset()">reset</button>
 </body>
 </html>
