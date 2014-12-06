@@ -272,6 +272,7 @@ public class DefaultGameDAO implements GameDAO {
             stat.setInt(3, rel.getType());
             stat.setInt(4, rel.getIsReady());
             stat.setInt(5, rel.getPlayerIndex());
+            stat.setLong(6, rel.getId());
             stat.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(DefaultGameDAO.class.getName()).log(Level.SEVERE, "Exception occured while executing sql in addUser", ex);

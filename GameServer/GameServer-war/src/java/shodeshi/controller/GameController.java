@@ -86,7 +86,9 @@ public class GameController {
                     rooms.put(roomId, serverRoom);
                 }
 
+                // Retrieve all users in this room
                 List<RoomUserRel> rels = dao.getRoomUserRelByRoomId(roomId);
+                // Build room user relationship
                 RoomUserRel rel = new RoomUserRel();
                 rel.setRoomId(roomId);
                 rel.setUserId(user.getId());
@@ -99,6 +101,7 @@ public class GameController {
                     rel.setPlayerIndex(1);
                     serverRoom.setUser2(serverUser);
                 }
+                // Save room user relationship, represents the user have joined the room
                 dao.insertRoomUserRel(rel);
                 // Send response back
                 String response = Json.createObjectBuilder()
@@ -107,10 +110,42 @@ public class GameController {
                         .build().toString();
                 serverRoom.sendMessage(response);
                 break;
+            case "getReady":
+                getReady(request);
+                break;
             case "reset":
                 reset();
                 break;
         }
+    }
+
+    private void getReady(JsonObject request) {
+        Long roomId = (long)request.getInt("roomId");
+        Long userId = (long)(request.getJsonObject("user").getInt("id"));
+        ServerRoom serverRoom = rooms.get(roomId);
+        List<RoomUserRel> rels = dao.getRoomUserRelByRoomId(roomId);
+        for (RoomUserRel rel : rels) {
+            // Update the relationship for request user
+            if (userId == rel.getUserId()) {
+                rel.setIsReady(1);
+                dao.updateRoomUserRel(rel);
+            }
+
+            // Maintain server user information
+            if (rel.getPlayerIndex() == 0 && serverRoom.getUser1() != null) {
+                serverRoom.getUser1().setIsReady(rel.getIsReady());
+            }
+
+            if (rel.getPlayerIndex() == 1 && serverRoom.getUser2() != null) {
+                serverRoom.getUser2().setIsReady(rel.getIsReady());
+            }
+        }
+
+        // Send server room information back
+        serverRoom.sendMessage(Json.createObjectBuilder()
+                .add("event", "getReady")
+                .add("room", serverRoom.toJSONString())
+                .build().toString());
     }
 
     public void reset() {

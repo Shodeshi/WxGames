@@ -6,7 +6,7 @@ var WSController = WSController || {
     HOST: "localhost",
     events: {},
 
-    init: function (callback, params) {
+    init: function (callback) {
         if (WSController.webSocket) {
             Logger.log('Already connected to WebSocket.');
         }
@@ -15,18 +15,19 @@ var WSController = WSController || {
             WSController.webSocket.onopen = function (event) {
                 Logger.log('WebSocket connected.');
                 if(callback)
-                    callback(params);
+                    callback["func"].apply(callback["obj"]);
             };
             WSController.webSocket.onerror = function () {
                 Logger.error('WebSocket connect failed.');
             };
             WSController.webSocket.onmessage = function (event) {
-                var message = JSON.parse(event.data);
+                var response = JSON.parse(event.data);
                 Logger.log("Server response: " + event.data);
 
-                var eventName = message.event;
-                if (WSController.events[eventName])
-                    WSController.events[eventName]();
+                var eventName = response.event;
+                var callbackObj = WSController.events[eventName];
+                if (callbackObj)
+                    callbackObj["func"].apply(callbackObj["obj"], [response]);
                 else
                     Logger.error(eventName + ' event not exists!');
 
@@ -38,9 +39,9 @@ var WSController = WSController || {
         WSController.webSocket.send(msg);
     },
 
-    registerEvent: function (eventName, callBackMethod) {
-        if (callBackMethod) {
-            WSController.events[eventName] = callBackMethod;
+    registerEvent: function (eventName, callBackObj) {
+        if (callBackObj) {
+            WSController.events[eventName] = callBackObj;
         }
     }
 };

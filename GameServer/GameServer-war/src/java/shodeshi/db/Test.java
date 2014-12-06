@@ -12,6 +12,7 @@ import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import shodeshi.db.model.Room;
+import shodeshi.db.model.RoomUserRel;
 import shodeshi.db.model.User;
 
 /**
@@ -59,7 +60,17 @@ public class Test {
 //            User user = new User();
 //            user.setName("test");
 //            dao.addUser(user);
-            dao.getRoomUserRelByRoomId(1l);
+//            dao.getRoomUserRelByRoomId(1l);
+            
+            RoomUserRel rel = new RoomUserRel();
+            rel.setId(65l);
+            rel.setRoomId(1l);
+            rel.setUserId(8l);
+            rel.setIsReady(11);
+            rel.setPlayerIndex(0);
+            rel.setType(1);
+            dao.updateRoomUserRel(rel);
+            
 
         } catch (Exception ex) {
             Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
