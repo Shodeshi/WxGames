@@ -19,6 +19,7 @@ import javax.json.JsonReader;
 import javax.websocket.Session;
 import shodeshi.db.DefaultGameDAO;
 import shodeshi.db.GameDAO;
+import shodeshi.db.model.Game;
 import shodeshi.db.model.Room;
 import shodeshi.db.model.RoomUserRel;
 import shodeshi.db.model.User;
@@ -146,6 +147,10 @@ public class GameController {
                 .add("event", "getReady")
                 .add("room", serverRoom.toJSONString())
                 .build().toString());
+        
+        if(serverRoom.getUser1().getIsReady() == 1 && serverRoom.getUser2().getIsReady() == 1){
+            Game game = new Game();
+        }
     }
 
     public void reset() {

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import shodeshi.db.model.Game;
 import shodeshi.db.model.Room;
 import shodeshi.db.model.RoomUserRel;
 import shodeshi.db.model.User;
@@ -298,6 +299,65 @@ public class DefaultGameDAO implements GameDAO {
         try {
             stat = conn.prepareStatement("delete from room_user_rel where room_id = ?");
             stat.setLong(1, roomId);
+            stat.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(DefaultGameDAO.class.getName()).log(Level.SEVERE, "Exception occured while executing sql in addUser", ex);
+        } finally {
+            try {
+                if (stat != null) {
+                    stat.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(DefaultGameDAO.class.getName()).log(Level.SEVERE, "Exception occured while closing connection in addUser", ex);
+            }
+        }
+    }
+
+    @Override
+    public void insertGame(Game game) {
+        Connection conn = connectionFactory.getConnection();
+        PreparedStatement stat = null;
+
+        try {
+            stat = conn.prepareStatement("insert into game(room_id, init_board, cur_board, turn) values (?,?,?,?)");
+            stat.setLong(1, game.getRoomId());
+            stat.setString(2, game.getInitBoard());
+            stat.setString(3, game.getCurrentBoard());
+            stat.setInt(4, game.getTurn());
+            stat.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(DefaultGameDAO.class.getName()).log(Level.SEVERE, "Exception occured while executing sql in addUser", ex);
+        } finally {
+            try {
+                if (stat != null) {
+                    stat.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(DefaultGameDAO.class.getName()).log(Level.SEVERE, "Exception occured while closing connection in addUser", ex);
+            }
+        }
+    }
+
+    @Override
+    public void updateGame(Game game) {
+        Connection conn = connectionFactory.getConnection();
+        PreparedStatement stat = null;
+
+        try {
+            stat = conn.prepareStatement("update game set room_id = ?, init_board = ?, cur_board = ?, turn = ?, moves = ?, winner = ? where id = ?");
+            stat.setLong(1, game.getRoomId());
+            stat.setString(2, game.getInitBoard());
+            stat.setString(3, game.getCurrentBoard());
+            stat.setInt(4, game.getTurn());
+            stat.setString(5, game.getMoves());
+            stat.setLong(6, game.getWinner());
+            stat.setLong(7, game.getId());
             stat.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(DefaultGameDAO.class.getName()).log(Level.SEVERE, "Exception occured while executing sql in addUser", ex);

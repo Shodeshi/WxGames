@@ -1,6 +1,7 @@
 package shodeshi.db;
 
 import java.util.List;
+import shodeshi.db.model.Game;
 import shodeshi.db.model.Room;
 import shodeshi.db.model.RoomUserRel;
 import shodeshi.db.model.User;
@@ -19,4 +20,6 @@ public interface GameDAO {
     public void insertRoomUserRel(RoomUserRel rel);
     public void updateRoomUserRel(RoomUserRel rel);
     public void deleteRoomUserRelByRoom(Long roomId);
+    public void insertGame(Game game);
+    public void updateGame(Game game);
 }

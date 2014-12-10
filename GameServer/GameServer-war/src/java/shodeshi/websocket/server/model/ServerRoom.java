@@ -19,6 +19,7 @@ public class ServerRoom {
     private Room room;
     private ServerUser user1;
     private ServerUser user2;
+    private ServerGame game;
 
     public Room getRoom() {
         return room;
@@ -42,6 +43,14 @@ public class ServerRoom {
 
     public void setUser2(ServerUser user2) {
         this.user2 = user2;
+    }
+
+    public ServerGame getGame() {
+        return game;
+    }
+
+    public void setGame(ServerGame game) {
+        this.game = game;
     }
 
     public String toJSONString() {
