@@ -98,9 +98,9 @@ var GameLayer = cc.Layer.extend({
             that.removeGetReadyBtn();
 
             var request = new Object();
-            request.event = "getReady";
-            request.roomId = this.parent.roomId;
-            request.user = this.parent.whoAmI;
+            request["event"] = "getReady";
+            request["roomId"] = this.parent.roomId;
+            request["user"] = this.parent.whoAmI;
 
             WSController.sendMessage(JSON.stringify(request));
         }, this);
