@@ -6,7 +6,6 @@
 
 package shodeshi.websocket.server.model;
 
-import javax.json.JsonArray;
 import shodeshi.db.model.Room;
 
 /**
@@ -15,7 +14,7 @@ import shodeshi.db.model.Room;
  */
 public class ServerGame {
     private Room room;
-    private JsonArray boardArr;
+    private int[][] boardArr;
 
     public Room getRoom() {
         return room;
@@ -25,12 +24,13 @@ public class ServerGame {
         this.room = room;
     }
 
-    public JsonArray getBoardArr() {
+    public int[][] getBoardArr() {
         return boardArr;
     }
 
-    public void setBoardArr(JsonArray boardArr) {
+    public void setBoardArr(int[][] boardArr) {
         this.boardArr = boardArr;
     }
+
     
 }

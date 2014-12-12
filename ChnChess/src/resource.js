@@ -2,6 +2,7 @@ var res = {
     chessBoard : "res/board.png",
     bjiang : "res/bjiang.png",
     bche : "res/bche.png",
+    selected : "res/selected.png",
     unknown : "res/unknown.png"
 };
 
@@ -10,6 +11,7 @@ var g_resources = [
     res.chessBoard,
     res.bjiang,
     res.bche,
+    res.selected,
     res.unknown
     //plist
 

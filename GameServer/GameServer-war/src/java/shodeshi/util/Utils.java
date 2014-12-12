@@ -44,4 +44,18 @@ public class Utils {
 
         return array;
     }
+    
+    public static String convertBoardArrayToJsonString(int[][] boardArr){
+        JsonBuilderFactory factory = Json.createBuilderFactory(null);
+        JsonArrayBuilder builder = factory.createArrayBuilder();
+        for(int i=0;i<boardArr.length;i++){
+            int[] row = boardArr[i];
+            JsonArrayBuilder rowBuilder = factory.createArrayBuilder();
+            for(int j=0;j<row.length;j++){
+                rowBuilder.add(row[j]);
+            }
+            builder.add(rowBuilder.build());
+        }
+        return builder.build().toString();
+    }
 }

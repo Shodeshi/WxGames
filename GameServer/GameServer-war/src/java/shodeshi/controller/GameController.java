@@ -7,14 +7,11 @@ package shodeshi.controller;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.json.Json;
-import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.websocket.Session;
 import shodeshi.db.DefaultGameDAO;
@@ -23,6 +20,8 @@ import shodeshi.db.model.Game;
 import shodeshi.db.model.Room;
 import shodeshi.db.model.RoomUserRel;
 import shodeshi.db.model.User;
+import shodeshi.util.Utils;
+import shodeshi.websocket.server.model.ServerGame;
 import shodeshi.websocket.server.model.ServerRoom;
 import shodeshi.websocket.server.model.ServerUser;
 
@@ -149,7 +148,17 @@ public class GameController {
                 .build().toString());
         
         if(serverRoom.getUser1().getIsReady() == 1 && serverRoom.getUser2().getIsReady() == 1){
+            ServerGame serverGame = new ServerGame();
+            serverGame.setBoardArr(Utils.createBoardArray());
+            String boardJsonString = Utils.convertBoardArrayToJsonString(serverGame.getBoardArr());
+            
             Game game = new Game();
+            game.setRoomId(roomId);
+            game.setTurn(0);
+            game.setInitBoard(boardJsonString);
+            game.setCurrentBoard(boardJsonString);
+            dao.insertGame(game);
+            
         }
     }
 

@@ -90,6 +90,8 @@ public class Test {
                 }
                 System.out.println();
             }
+            
+            System.out.println(Utils.convertBoardArrayToJsonString(arr));
 
 //            arr.getJsonArray(0).set(1, new JsonNumber(1));
 //            System.out.println(arr.getJsonArray(0).getInt(0));

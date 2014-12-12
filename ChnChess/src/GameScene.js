@@ -25,8 +25,8 @@ var GameScene = cc.Scene.extend({
 //        params.callback = this.loginSuccess;
 
         var callback = new Object();
-        callback.func = this.loginRequest;
-        callback.obj = this;
+        callback["func"] = this.loginRequest;
+        callback["obj"] = this;
 
         // Init WebSocket, send login request after connected
         WSController.init(callback);
@@ -34,12 +34,12 @@ var GameScene = cc.Scene.extend({
     loginRequest: function () {
         // Build login request json object
         var request = new Object();
-        request.event = "login";
-        request.userName = this.myUserName;
+        request["event"] = "login";
+        request["userName"] = this.myUserName;
 
         var callback = new Object();
-        callback.func = this.loginSuccess;
-        callback.obj = this;
+        callback["func"] = this.loginSuccess;
+        callback["obj"] = this;
 
         // Register the login event
         WSController.registerEvent("login", callback);
@@ -49,15 +49,19 @@ var GameScene = cc.Scene.extend({
     loginSuccess: function (response) {
         var room = JSON.parse(response["room"]);
         this.roomId = room["id"];
+
+        // When this is the response for myself, add get ready button
+        if(!this.whoAmI){
+            // Register get ready event, in case the other user get ready at first
+            var callbackObj = new Object();
+            callbackObj["obj"] = this;
+            callbackObj["func"] = this.getReadySuccess;
+            WSController.registerEvent("getReady", callbackObj);
+
+            this.gameLayer.addGetReadyBtn(callbackObj);
+        }
+
         this.updateRoomInfo(room);
-
-        // Register get ready event, in case the other user get ready at first
-        var callbackObj = new Object();
-        callbackObj.obj = this;
-        callbackObj.func = this.getReadySuccess;
-        WSController.registerEvent("getReady", callbackObj);
-
-        this.gameLayer.addGetReadyBtn(callbackObj);
     },
 
     updateRoomInfo: function (room) {

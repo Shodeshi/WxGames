@@ -3,7 +3,7 @@
  */
 var WSController = WSController || {
     webSocket: null,
-    HOST: "123.57.10.169",
+    HOST: "localhost",
     //My host: 123.57.10.169
     events: {},
 
@@ -16,7 +16,7 @@ var WSController = WSController || {
             WSController.webSocket.onopen = function (event) {
                 Logger.log('WebSocket connected.');
                 if(callback)
-                    callback.func.apply(callback.obj);
+                    callback["func"].apply(callback["obj"]);
             };
             WSController.webSocket.onerror = function () {
                 Logger.error('WebSocket connect failed.');
@@ -28,7 +28,7 @@ var WSController = WSController || {
                 var eventName = response.event;
                 var callbackObj = WSController.events[eventName];
                 if (callbackObj)
-                    callbackObj.func.apply(callbackObj.obj, [response]);
+                    callbackObj["func"].apply(callbackObj["obj"], [response]);
                 else
                     Logger.error(eventName + ' event not exists!');
 
