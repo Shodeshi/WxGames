@@ -75,7 +75,7 @@ public class GameController {
                 // Need improve with synchronized
                 long roomId = 1l;
                 Room room = null;
-                ServerRoom serverRoom = null;
+                ServerRoom serverRoom;
                 if (rooms.containsKey(roomId)) {
                     serverRoom = rooms.get(roomId);
                     room = serverRoom.getRoom();
@@ -115,6 +115,9 @@ public class GameController {
                 break;
             case "reset":
                 reset();
+                break;
+            case "showChess":
+                showChess(request);
                 break;
         }
     }
@@ -159,9 +162,14 @@ public class GameController {
             game.setCurrentBoard(boardJsonString);
             dao.insertGame(game);
             
+            serverRoom.sendMessage(Json.createObjectBuilder().add("event", "startGame").build().toString());
         }
     }
 
+    private void showChess(JsonObject request){
+        System.out.println("show!!");
+    }
+    
     public void reset() {
         rooms.clear();
         dao.deleteRoomUserRelByRoom(1l);

@@ -9,6 +9,8 @@ var GameLayer = cc.Layer.extend({
     redPlayerLabel: null,
     redPlayerStatus: null,
     getReadyMenu: null,
+    selectedSprite: null,
+    previousSelected: null,
 
     ctor: function () {
         this._super();
@@ -20,7 +22,7 @@ var GameLayer = cc.Layer.extend({
         for (var i = 0; i < 9; i++) {
             this.boardArr[i] = new Array();
             for (var j = 0; j < 10; j++) {
-                this.boardArr[j] = 0;
+                this.boardArr[i][j] = 0;
             }
         }
 
@@ -64,6 +66,12 @@ var GameLayer = cc.Layer.extend({
         this.redPlayerStatus.anchorY = 1;
         this.redPlayerStatus.x = board.x + board.width + 5;
         this.redPlayerStatus.y = this.redPlayerLabel.y - this.redPlayerLabel.height - 5;
+
+        this.selectedSprite = cc.Sprite.create(res.selected);
+        this.selectedSprite.setVisible(false);
+        this.selectedSprite.setScaleX(0.5);
+        this.selectedSprite.setScaleY(0.5);
+        this.addChild(this.selectedSprite);
     },
 
     updatePlayerName: function (playerIndex, name) {
@@ -88,8 +96,8 @@ var GameLayer = cc.Layer.extend({
 
     },
 
-    addGetReadyBtn: function(){
-        if(this.getReadyMenu && this.getReadyMenu.parent)
+    addGetReadyBtn: function () {
+        if (this.getReadyMenu && this.getReadyMenu.parent)
             return;
 
         var that = this;
@@ -116,7 +124,45 @@ var GameLayer = cc.Layer.extend({
         this.addChild(this.getReadyMenu);
     },
 
-    removeGetReadyBtn: function(){
+    removeGetReadyBtn: function () {
         this.getReadyMenu.removeFromParent();
+    },
+
+    touchChess: function (indexX, indexY) {
+        var chess = this.boardArr[indexX][indexY];
+        if (chess.isSelected) {
+            // Send show chess request
+            var request = new Object();
+            request["event"] = "showChess";
+            request["roomId"] = this.parent.roomId;
+            request["user"] = this.parent.whoAmI;
+            request["position"] = {
+                    "indexX": indexX,
+                    "indexY": indexY
+                };
+
+            WSController.sendMessage(JSON.stringify(request));
+        }
+        else {
+            // Set previous selected chess to unselected
+            if (this.previousSelected)
+                this.previousSelected.isSelected = false;
+
+            // Save current touching chess as previous selected chess
+            this.previousSelected = chess;
+            // Select touching chess
+            this.setSelected(indexX, indexY);
+            chess.isSelected = true;
+        }
+    },
+
+    setSelected: function (indexX, indexY) {
+        this.selectedSprite.x = 32 + indexX * 32;
+        this.selectedSprite.y = 18 + indexY * 32;
+        this.selectedSprite.setVisible(true);
+    },
+
+    showChess: function(response){
+
     }
 });

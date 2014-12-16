@@ -18,6 +18,7 @@ var GameScene = cc.Scene.extend({
         this.gameLayer = new GameLayer();
         this.addChild(new BackGroundLayer());
         this.addChild(this.gameLayer);
+        GameStatus = WAITING;
 
         // Build parameter for login request
 //        var params = new Object();
@@ -51,12 +52,19 @@ var GameScene = cc.Scene.extend({
         this.roomId = room["id"];
 
         // When this is the response for myself, add get ready button
-        if(!this.whoAmI){
+        if (!this.whoAmI) {
             // Register get ready event, in case the other user get ready at first
             var callbackObj = new Object();
             callbackObj["obj"] = this;
             callbackObj["func"] = this.getReadySuccess;
             WSController.registerEvent("getReady", callbackObj);
+
+            // Register start game event
+            var startGameCallBackObj = new Object();
+            startGameCallBackObj["obj"] = this;
+            startGameCallBackObj["func"] = this.startGame;
+
+            WSController.registerEvent("startGame", startGameCallBackObj);
 
             this.gameLayer.addGetReadyBtn(callbackObj);
         }
@@ -86,5 +94,15 @@ var GameScene = cc.Scene.extend({
 
     getReadySuccess: function (response) {
         this.updateRoomInfo(JSON.parse(response["room"]));
+    },
+
+    startGame: function (response) {
+        WSController.removeEvent("startGame")
+        GameStatus = STARTED;
+
+        var callbackObj = new Object();
+        callbackObj["obj"] = this.gameLayer;
+        callbackObj["func"] = this.gameLayer.showChess;
+        WSController.registerEvent("updateBoard", callbackObj);
     }
 });

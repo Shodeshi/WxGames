@@ -15,7 +15,7 @@ var WSController = WSController || {
             WSController.webSocket = new WebSocket("ws://" + WSController.HOST + ":8080/GameServer-war/server");
             WSController.webSocket.onopen = function (event) {
                 Logger.log('WebSocket connected.');
-                if(callback)
+                if (callback)
                     callback["func"].apply(callback["obj"]);
             };
             WSController.webSocket.onerror = function () {
@@ -44,5 +44,9 @@ var WSController = WSController || {
         if (callBackObj) {
             WSController.events[eventName] = callBackObj;
         }
+    },
+
+    removeEvent: function (eventName) {
+        WSController.events[eventName] = undefined;
     }
 };
