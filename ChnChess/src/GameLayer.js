@@ -10,7 +10,8 @@ var GameLayer = cc.Layer.extend({
     redPlayerStatus: null,
     getReadyMenu: null,
     selectedSprite: null,
-    previousSelected: null,
+    previousChess: null,
+    previousPosition: null,
 
     ctor: function () {
         this._super();
@@ -72,6 +73,90 @@ var GameLayer = cc.Layer.extend({
         this.selectedSprite.setScaleX(0.5);
         this.selectedSprite.setScaleY(0.5);
         this.addChild(this.selectedSprite);
+
+        var selfPointer = this;
+        var listener = cc.EventListener.create({
+            event: cc.EventListener.TOUCH_ONE_BY_ONE,
+            swallowTouches: true,
+            onTouchBegan: function (touch, event) {
+                if (Game.status != STARTED || Game.myTurn != Game.nextTurn)
+                    return false;
+
+                var location = touch.getLocation();
+                var indexX = Math.round((location.x - START_X) / DISTANCE);
+                var indexY = Math.round((location.y - START_Y) / DISTANCE);
+
+                // Out of bound
+                if(indexX > 8 || indexY > 9)
+                    return false;
+
+                cc.log("Touching :" + indexX + ", " + indexY);
+                selfPointer.touchChess(indexX < 0 ? 0 : indexX, indexY < 0 ? 0 : indexY);
+
+                var chess = selfPointer.boardArr[indexX][indexY];
+                // You can only move the chess when you are selecting yourselves
+                if (chess && chess.chessType != ChessType.unknown && Game.myTurn == chess.chessType["owner"])
+                    return true;
+
+                return false;
+            },
+            onTouchMoved: function (touch, event) {
+                var chess = selfPointer.previousChess;
+                var location = touch.getLocation();
+                var indexX = Math.round((location.x - START_X) / DISTANCE);
+                var indexY = Math.round((location.y - START_Y) / DISTANCE);
+
+                chess.moveTo(location.x, location.y);
+                selfPointer.setSelected(indexX, indexY);
+            },
+            onTouchEnded: function (touch, event) {
+                var chess = selfPointer.previousChess;
+                var location = touch.getLocation();
+                var indexX = Math.round((location.x - START_X) / DISTANCE);
+                var indexY = Math.round((location.y - START_Y) / DISTANCE);
+
+                // When the end position already has one chess
+                var endChess = selfPointer.boardArr[indexX][indexY]
+                if (endChess) {
+                    if (endChess.chessType["owner"] == chess.chessType["owner"] || endChess.chessType == ChessType.unknown) {
+                        // We encountered our chess or unknown chess, move the chess back
+                        chess.moveToIndex(chess.indexX, chess.indexY);
+
+                        // Don't need send any request, just return
+                        return;
+                    }
+                    else {
+                        // Eat it!
+                        endChess.destroy();
+                    }
+                }
+
+                chess.moveToIndex(indexX, indexY);
+                selfPointer.selectedSprite.setVisible(false);
+
+                // Build move request object
+                var request = new Object();
+                request["event"] = "moveChess";
+                request["roomId"] = selfPointer.parent.roomId;
+                request["user"] = selfPointer.parent.whoAmI;
+                request["from"] = [chess.indexX, chess.indexY];
+                request["to"] = [indexX, indexY];
+
+                // Update the board array and chess index
+                selfPointer.boardArr[chess.indexX][chess.indexY] = 0;
+                chess.indexX = indexX;
+                chess.indexY = indexY;
+                selfPointer.boardArr[indexX][indexY] = chess;
+
+                // Set next turn
+                Game.nextTurn = Game.myTurn == 0 ? 1 : 0;
+
+                // Send move request
+                WSController.sendMessage(JSON.stringify(request));
+            }
+        });
+
+        cc.eventManager.addListener(listener, this);
     },
 
     updatePlayerName: function (playerIndex, name) {
@@ -130,26 +215,26 @@ var GameLayer = cc.Layer.extend({
 
     touchChess: function (indexX, indexY) {
         var chess = this.boardArr[indexX][indexY];
-        if (chess.isSelected) {
+        if (chess && chess.isSelected) {
             // Send show chess request
             var request = new Object();
             request["event"] = "showChess";
             request["roomId"] = this.parent.roomId;
             request["user"] = this.parent.whoAmI;
             request["position"] = {
-                    "indexX": indexX,
-                    "indexY": indexY
-                };
+                "indexX": indexX,
+                "indexY": indexY
+            };
 
             WSController.sendMessage(JSON.stringify(request));
         }
         else {
             // Set previous selected chess to unselected
-            if (this.previousSelected)
-                this.previousSelected.isSelected = false;
+            if (this.previousChess)
+                this.previousChess.isSelected = false;
 
             // Save current touching chess as previous selected chess
-            this.previousSelected = chess;
+            this.previousChess = chess;
             // Select touching chess
             this.setSelected(indexX, indexY);
             chess.isSelected = true;
@@ -162,7 +247,48 @@ var GameLayer = cc.Layer.extend({
         this.selectedSprite.setVisible(true);
     },
 
-    showChess: function(response){
+    updateBoard: function (response) {
+        if ("showChess" == response["subEvent"]) {
+            Game.nextTurn = response["nextTurn"];
+            var showChess = response["chess"];
+            this.selectedSprite.setVisible(false);
 
+            var indexX = showChess["indexX"];
+            var indexY = showChess["indexY"];
+            this.boardArr[indexX][indexY].showChess(showChess["chessType"]);
+//            cc.log("Show chess: " + showChess["indexX"] + ", " + showChess["indexY"] + " --- " + showChess["chessType"]);
+        }
+
+        if ("moveChess" == response["subEvent"]) {
+
+            // If the move response came from the other player
+            if (response["nextTurn"] == Game.myTurn) {
+                var fromX = response["from"][0];
+                var fromY = response["from"][1];
+                var toX = response["to"][0];
+                var toY = response["to"][1];
+
+                // Retrieve from chess
+                var fromChess = this.boardArr[fromX][fromY];
+                this.boardArr[fromX][fromY] = 0;
+
+                // If the end position has chess, remove it
+                if (this.boardArr[toX][toY])
+                    this.boardArr[toX][toY].destroy();
+
+                // Save the from chess
+                fromChess.indexX = toX;
+                fromChess.indexY = toY;
+                this.boardArr[toX][toY] = fromChess;
+
+
+                // Run the moving animation
+                var action = cc.moveTo(0.5, cc.p(START_X + toX * DISTANCE, START_Y + toY * DISTANCE));
+                fromChess.sprite.runAction(action);
+            }
+
+            // Set next turn
+            Game.nextTurn = response["nextTurn"];
+        }
     }
 });

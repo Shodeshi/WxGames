@@ -119,12 +119,16 @@ public class GameController {
             case "showChess":
                 showChess(request);
                 break;
+            case "moveChess":
+                moveChess(request);
+                break;
+
         }
     }
 
     private void getReady(JsonObject request) {
-        Long roomId = (long)request.getInt("roomId");
-        Long userId = (long)(request.getJsonObject("user").getInt("id"));
+        Long roomId = request.getJsonNumber("roomId").longValue();
+        Long userId = request.getJsonObject("user").getJsonNumber("id").longValue();
         ServerRoom serverRoom = rooms.get(roomId);
         List<RoomUserRel> rels = dao.getRoomUserRelByRoomId(roomId);
         for (RoomUserRel rel : rels) {
@@ -149,27 +153,99 @@ public class GameController {
                 .add("event", "getReady")
                 .add("room", serverRoom.toJSONString())
                 .build().toString());
-        
-        if(serverRoom.getUser1().getIsReady() == 1 && serverRoom.getUser2().getIsReady() == 1){
+
+        if (serverRoom.getUser1().getIsReady() == 1 && serverRoom.getUser2().getIsReady() == 1) {
             ServerGame serverGame = new ServerGame();
             serverGame.setBoardArr(Utils.createBoardArray());
+            serverGame.setTurn(0);
+
             String boardJsonString = Utils.convertBoardArrayToJsonString(serverGame.getBoardArr());
-            
+            serverRoom.setGame(serverGame);
+
             Game game = new Game();
             game.setRoomId(roomId);
             game.setTurn(0);
             game.setInitBoard(boardJsonString);
             game.setCurrentBoard(boardJsonString);
             dao.insertGame(game);
-            
+
             serverRoom.sendMessage(Json.createObjectBuilder().add("event", "startGame").build().toString());
         }
     }
 
-    private void showChess(JsonObject request){
-        System.out.println("show!!");
+    private void showChess(JsonObject request) {
+        long roomId = request.getJsonNumber("roomId").longValue();
+        long userId = request.getJsonObject("user").getJsonNumber("id").longValue();
+        int indexX = request.getJsonObject("position").getJsonNumber("indexX").intValue();
+        int indexY = request.getJsonObject("position").getJsonNumber("indexY").intValue();
+
+        ServerRoom serverRoom = rooms.get(roomId);
+        ServerGame serverGame = serverRoom.getGame();
+        int[][] boardArr = serverGame.getBoardArr();
+        // Check if the request is valid
+        // TODO check user
+
+        // >= 200 means it's not unknown, 0 means not exist
+        int chessType = boardArr[indexX][indexY];
+        if (chessType >= 200 || chessType == 0) {
+            // Handle the invalid request here
+        } else {
+            serverGame.setTurn(serverGame.getTurn() == 0 ? 1 : 0);
+            // Save the chess type to known
+            boardArr[indexX][indexY] = chessType + 100;
+
+            serverRoom.sendMessage(Json.createObjectBuilder()
+                    .add("event", "updateBoard")
+                    .add("subEvent", "showChess")
+                    .add("status", "success")
+                    .add("nextTurn", serverGame.getTurn())
+                    .add("chess", Json.createObjectBuilder()
+                            .add("indexX", indexX)
+                            .add("indexY", indexY)
+                            .add("chessType", chessType - 100)
+                            .build())
+                    .build().toString());
+
+            // Maintain the game infomation in database
+        }
     }
-    
+
+    private void moveChess(JsonObject request) {
+        long roomId = request.getJsonNumber("roomId").longValue();
+        long userId = request.getJsonObject("user").getJsonNumber("id").longValue();
+        int fromX = request.getJsonArray("from").getJsonNumber(0).intValue();
+        int fromY = request.getJsonArray("from").getJsonNumber(1).intValue();
+        int toX = request.getJsonArray("to").getJsonNumber(0).intValue();
+        int toY = request.getJsonArray("to").getJsonNumber(1).intValue();
+
+        ServerRoom serverRoom = rooms.get(roomId);
+        ServerGame serverGame = serverRoom.getGame();
+        int[][] boardArr = serverGame.getBoardArr();
+
+        // TODO Check if the request is valid
+        int from = boardArr[fromX][fromY];
+        boardArr[fromX][fromY] = 0;
+        boardArr[toX][toY] = from;
+        serverGame.setTurn(serverGame.getTurn() == 0 ? 1 : 0);
+
+        serverRoom.sendMessage(Json.createObjectBuilder()
+                .add("event", "updateBoard")
+                .add("subEvent", "moveChess")
+                .add("status", "success")
+                .add("nextTurn", serverGame.getTurn())
+                .add("from", Json.createArrayBuilder()
+                        .add(fromX)
+                        .add(fromY)
+                        .build())
+                .add("to", Json.createArrayBuilder()
+                        .add(toX)
+                        .add(toY)
+                        .build())
+                .build().toString());
+
+        // Maintain the game infomation in database
+    }
+
     public void reset() {
         rooms.clear();
         dao.deleteRoomUserRelByRoom(1l);

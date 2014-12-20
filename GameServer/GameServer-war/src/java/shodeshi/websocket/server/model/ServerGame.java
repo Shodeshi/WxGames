@@ -6,23 +6,16 @@
 
 package shodeshi.websocket.server.model;
 
-import shodeshi.db.model.Room;
+import shodeshi.db.model.Game;
 
 /**
  *
  * @author tyang
  */
 public class ServerGame {
-    private Room room;
+    private Game game;
     private int[][] boardArr;
-
-    public Room getRoom() {
-        return room;
-    }
-
-    public void setRoom(Room room) {
-        this.room = room;
-    }
+    private int turn;
 
     public int[][] getBoardArr() {
         return boardArr;
@@ -32,5 +25,19 @@ public class ServerGame {
         this.boardArr = boardArr;
     }
 
-    
+    public Game getGame() {
+        return game;
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
+    }
+
+    public int getTurn() {
+        return turn;
+    }
+
+    public void setTurn(int turn) {
+        this.turn = turn;
+    }
 }

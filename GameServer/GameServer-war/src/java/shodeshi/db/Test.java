@@ -18,6 +18,7 @@ import shodeshi.util.Utils;
  * @author tyang
  */
 public class Test {
+    public int[] arr;
 
     public static void t1() throws Exception {
         Class.forName("com.mysql.jdbc.Driver");
@@ -82,16 +83,16 @@ public class Test {
 //                    .build();
 //            String str = arr.toString();
             
-            int arr[][] = Utils.createBoardArray();
-
-            for(int y=0;y<10;y++){
-                for(int x=0;x<9;x++){
-                    System.out.print(arr[x][y] + ",");
-                }
-                System.out.println();
-            }
-            
-            System.out.println(Utils.convertBoardArrayToJsonString(arr));
+//            int arr[][] = Utils.createBoardArray();
+//
+//            for(int y=0;y<10;y++){
+//                for(int x=0;x<9;x++){
+//                    System.out.print(arr[x][y] + ",");
+//                }
+//                System.out.println();
+//            }
+//            
+//            System.out.println(Utils.convertBoardArrayToJsonString(arr));
 
 //            arr.getJsonArray(0).set(1, new JsonNumber(1));
 //            System.out.println(arr.getJsonArray(0).getInt(0));
@@ -102,6 +103,12 @@ public class Test {
 //            JsonReader jsonreader = Json.createReader(new StringReader(message));
 //            JsonArray request = jsonreader.readArray();
 //            jsonreader.close();
+            
+            int[] arr = {1, 2 ,3};
+            Test test = new Test();
+            test.arr = arr;
+            arr[0] = 3;
+            System.out.println(test.arr[0]);
 
         } catch (Exception ex) {
             Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);

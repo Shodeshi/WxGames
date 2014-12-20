@@ -18,7 +18,7 @@ var GameScene = cc.Scene.extend({
         this.gameLayer = new GameLayer();
         this.addChild(new BackGroundLayer());
         this.addChild(this.gameLayer);
-        GameStatus = WAITING;
+        Game.status = WAITING;
 
         // Build parameter for login request
 //        var params = new Object();
@@ -78,8 +78,10 @@ var GameScene = cc.Scene.extend({
             this.gameLayer.updatePlayerName(1, player1["name"]);
             this.gameLayer.updatePlayerStatus(1, player1["isReady"] == 1 ? "已准备" : "未准备")
 
-            if (player1["name"] == this.myUserName)
+            if (player1["name"] == this.myUserName){
+                Game.myTurn = 0;
                 this.whoAmI = player1;
+            }
         }
 
         if (room["player2"]) {
@@ -87,8 +89,10 @@ var GameScene = cc.Scene.extend({
             this.gameLayer.updatePlayerName(2, player2["name"]);
             this.gameLayer.updatePlayerStatus(2, player2["isReady"] == 1 ? "已准备" : "未准备")
 
-            if (player2["name"] == this.myUserName)
+            if (player2["name"] == this.myUserName){
+                Game.myTurn = 1
                 this.whoAmI = player2;
+            }
         }
     },
 
@@ -98,11 +102,12 @@ var GameScene = cc.Scene.extend({
 
     startGame: function (response) {
         WSController.removeEvent("startGame")
-        GameStatus = STARTED;
+        Game.status = STARTED;
+        Game.nextTurn = 0;
 
         var callbackObj = new Object();
         callbackObj["obj"] = this.gameLayer;
-        callbackObj["func"] = this.gameLayer.showChess;
+        callbackObj["func"] = this.gameLayer.updateBoard;
         WSController.registerEvent("updateBoard", callbackObj);
     }
 });
