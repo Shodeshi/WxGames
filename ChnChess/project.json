@@ -2,7 +2,7 @@
     "project_type": "javascript",
 
     "debugMode" : 1,
-    "showFPS" : true,
+    "showFPS" : false,
     "frameRate" : 60,
     "id" : "gameCanvas",
     "renderMode" : 0,
@@ -16,6 +16,8 @@
         "src/MenuScene.js",
         "src/GameScene.js",
         "src/GameLayer.js",
+        "src/RoomScene.js",
+        "src/RoomLayer.js",
         "src/InputLayer.js",
         "src/Chess.js",
         "src/WSController.js",

@@ -41,8 +41,8 @@ public class GameServer {
     }
 
     @OnClose
-    public void onClose() {
-
+    public void onClose(Session session) {
+        System.out.println("Closed: " + this + session);
     }
 
     @OnError

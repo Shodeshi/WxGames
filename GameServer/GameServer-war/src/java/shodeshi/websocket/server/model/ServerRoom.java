@@ -65,6 +65,19 @@ public class ServerRoom {
         }
         return builder.build().toString();
     }
+    
+    public JsonObject toJSONObjectForPlayerCount(){
+        int count = 0;
+        if(user1 != null)
+            count ++;
+        if(user2 != null)
+            count ++;
+        
+        return Json.createObjectBuilder()
+                .add("roomId", room.getId())
+                .add("playerCount", count)
+                .build();
+    }
 
     public void sendMessage(String message) {
         if (user1 != null) {

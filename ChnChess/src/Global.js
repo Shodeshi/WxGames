@@ -21,6 +21,7 @@ var STARTED = 1;
 var Game = Game ||{
     status: WAITING,
     myTurn: -1,
+    myUserObj: undefined,
     nextTurn: -1
 }
 
