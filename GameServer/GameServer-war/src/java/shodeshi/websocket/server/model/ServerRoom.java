@@ -53,17 +53,17 @@ public class ServerRoom {
         this.game = game;
     }
 
-    public String toJSONString() {
+    public JsonObject toJSON() {
         JsonObjectBuilder builder = Json.createObjectBuilder()
                 .add("id", room.getId())
-                .add("name", room.getName());
+                .add("name", room.getName() == null ? "" : room.getName());
         if (user1 != null) {
-            builder.add("player1", user1.toJSONString());
+            builder.add("player1", user1.toJSON());
         }
         if (user2 != null) {
-            builder.add("player2", user2.toJSONString());
+            builder.add("player2", user2.toJSON());
         }
-        return builder.build().toString();
+        return builder.build();
     }
     
     public JsonObject toJSONObjectForPlayerCount(){

@@ -16,7 +16,7 @@ var MenuScene = cc.Scene.extend({
             var callback = new Object();
             callback["func"] = function (response) {
                 Game.myUserObj = response["user"];
-                cc.director.runScene(new RoomScene());
+                cc.director.runScene(new RoomScene(response["rooms"]));
             };
 
             // Register the login event

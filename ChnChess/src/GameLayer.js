@@ -138,7 +138,7 @@ var GameLayer = cc.Layer.extend({
                 var request = new Object();
                 request["event"] = "moveChess";
                 request["roomId"] = selfPointer.parent.roomId;
-                request["user"] = selfPointer.parent.whoAmI;
+                request["user"] = Game.myUserObj;
                 request["from"] = [chess.indexX, chess.indexY];
                 request["to"] = [indexX, indexY];
 
@@ -193,7 +193,7 @@ var GameLayer = cc.Layer.extend({
             var request = new Object();
             request["event"] = "getReady";
             request["roomId"] = this.parent.roomId;
-            request["user"] = this.parent.whoAmI;
+            request["user"] = Game.myUserObj;
 
             WSController.sendMessage(JSON.stringify(request));
         }, this);
@@ -220,7 +220,7 @@ var GameLayer = cc.Layer.extend({
             var request = new Object();
             request["event"] = "showChess";
             request["roomId"] = this.parent.roomId;
-            request["user"] = this.parent.whoAmI;
+            request["user"] = Game.myUserObj;
             request["position"] = {
                 "indexX": indexX,
                 "indexY": indexY

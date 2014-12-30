@@ -6,11 +6,12 @@ var GameScene = cc.Scene.extend({
     gameLayer: null,
     whoAmI: null,
     roomId: null,
+    // Save the join room response
+    response: null,
 
-    ctor: function (userName) {
+    ctor: function (response) {
         this._super();
-
-        this.myUserName = userName;
+        this.response = response
     },
 
     onEnter: function () {
@@ -20,35 +21,38 @@ var GameScene = cc.Scene.extend({
         this.addChild(this.gameLayer);
         Game.status = WAITING;
 
-        // Build parameter for login request
-//        var params = new Object();
-//        params.userName = this.myUserName;
-//        params.callback = this.loginSuccess;
+        // Init the room info
+        var room = this.response["room"];
+        this.roomId = room["id"];
 
-        var callback = new Object();
-        callback["func"] = this.loginRequest;
-        callback["obj"] = this;
+        // Register join room event for other players
+        var joinRoomCallBack = new Object();
+        var that = this;
+        joinRoomCallBack["func"] = function(response){
+            that.updateRoomInfo(response["room"]);
+        };
+        WSController.registerEvent("joinRoom", joinRoomCallBack);
 
-        // Init WebSocket, send login request after connected
-        WSController.init(callback);
+        // Register get ready event
+        var callbackObj = new Object();
+        callbackObj["obj"] = this;
+        callbackObj["func"] = this.getReadySuccess;
+        WSController.registerEvent("getReady", callbackObj);
+
+        // Register start game event
+        var startGameCallBackObj = new Object();
+        startGameCallBackObj["obj"] = this;
+        startGameCallBackObj["func"] = this.startGame;
+
+        WSController.registerEvent("startGame", startGameCallBackObj);
+
+        this.gameLayer.addGetReadyBtn(callbackObj);
+
+        this.updateRoomInfo(room);
     },
-    loginRequest: function () {
-        // Build login request json object
-        var request = new Object();
-        request["event"] = "login";
-        request["userName"] = this.myUserName;
 
-        var callback = new Object();
-        callback["func"] = this.loginSuccess;
-        callback["obj"] = this;
-
-        // Register the login event
-        WSController.registerEvent("login", callback);
-        // Send login request to server
-        WSController.sendMessage(JSON.stringify(request));
-    },
     loginSuccess: function (response) {
-        var room = JSON.parse(response["room"]);
+        var room = response["room"];
         this.roomId = room["id"];
 
         // When this is the response for myself, add get ready button
@@ -74,30 +78,30 @@ var GameScene = cc.Scene.extend({
 
     updateRoomInfo: function (room) {
         if (room["player1"]) {
-            var player1 = JSON.parse(room["player1"]);
+            var player1 = room["player1"];
             this.gameLayer.updatePlayerName(1, player1["name"]);
             this.gameLayer.updatePlayerStatus(1, player1["isReady"] == 1 ? "已准备" : "未准备")
 
-            if (player1["name"] == this.myUserName){
+            if (player1["name"] == Game.myUserObj["name"]){
                 Game.myTurn = 0;
-                this.whoAmI = player1;
+//                this.whoAmI = player1;
             }
         }
 
         if (room["player2"]) {
-            var player2 = JSON.parse(room["player2"]);
+            var player2 = room["player2"];
             this.gameLayer.updatePlayerName(2, player2["name"]);
             this.gameLayer.updatePlayerStatus(2, player2["isReady"] == 1 ? "已准备" : "未准备")
 
-            if (player2["name"] == this.myUserName){
+            if (player2["name"] == Game.myUserObj["name"]){
                 Game.myTurn = 1
-                this.whoAmI = player2;
+//                this.whoAmI = player2;
             }
         }
     },
 
     getReadySuccess: function (response) {
-        this.updateRoomInfo(JSON.parse(response["room"]));
+        this.updateRoomInfo(response["room"]);
     },
 
     startGame: function (response) {

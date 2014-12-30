@@ -7,7 +7,6 @@ package shodeshi.controller;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +60,9 @@ public class GameController {
             case "login":
                 login(request, session);
                 break;
+            case "joinRoom":
+                joinRoom(request, session);
+                break;
             case "getReady":
                 getReady(request);
                 break;
@@ -104,57 +106,84 @@ public class GameController {
         }
         builder.add("rooms", roomsBuilder.build());
         // Send response back
-        session.getAsyncRemote().sendText(builder.build().toString());
-
-        // Build ServerUser object
-//        ServerUser serverUser = new ServerUser();
-//        serverUser.setUser(user);
-//        serverUser.setSession(session);
-//        serverUser.setIsReady(0);
-//
-//        // Retrieve room infomation
-//        // Need improve with synchronized
-//        long roomId = 1l;
-//        Room room = null;
-//        ServerRoom serverRoom;
-//        if (rooms.containsKey(roomId)) {
-//            serverRoom = rooms.get(roomId);
-//            room = serverRoom.getRoom();
-//        } else {
-//            serverRoom = new ServerRoom();
-//            room = dao.getRoomById(roomId);
-//            serverRoom.setRoom(room);
-//            rooms.put(roomId, serverRoom);
-//        }
-//
-//        // Retrieve all users in this room
-//        List<RoomUserRel> rels = dao.getRoomUserRelByRoomId(roomId);
-//        // Build room user relationship
-//        RoomUserRel rel = new RoomUserRel();
-//        rel.setRoomId(roomId);
-//        rel.setUserId(user.getId());
-//        rel.setType(1);
-//        rel.setIsReady(0);
-//        if (rels.isEmpty()) {
-//            rel.setPlayerIndex(0);
-//            serverRoom.setUser1(serverUser);
-//        } else {
-//            rel.setPlayerIndex(1);
-//            serverRoom.setUser2(serverUser);
-//        }
-//        
-//        sessionRoomMap.put(session.getId(), roomId);
-//        
-//        // Save room user relationship, represents the user have joined the room
-//        dao.insertRoomUserRel(rel);
-//        // Send response back
-//        String response = Json.createObjectBuilder()
-//                .add("event", "login")
-//                .add("room", serverRoom.toJSONString())
-//                .build().toString();
-//        serverRoom.sendMessage(response);
+        session.getAsyncRemote().sendText(builder.build().toString());        
     }
 
+    private void joinRoom(JsonObject request, Session session){
+        JsonObject userJson = request.getJsonObject("user");
+        
+        // Build database user object
+        // TODO need retrieve from db?
+        User user = new User();
+        user.setId(userJson.getJsonNumber("id").longValue());
+        user.setName(userJson.getString("name"));
+        
+        // Build ServerUser object
+        ServerUser serverUser = new ServerUser();
+        serverUser.setUser(user);
+        serverUser.setSession(session);
+        serverUser.setIsReady(0);
+
+        // Retrieve room infomation
+        // Need improve with synchronized
+        long roomId = request.getInt("roomId");
+        Room room = null;
+        ServerRoom serverRoom;
+        if (rooms.containsKey(roomId)) {
+            serverRoom = rooms.get(roomId);
+            room = serverRoom.getRoom();
+        } else {
+            serverRoom = new ServerRoom();
+            room = dao.getRoomById(roomId);
+            serverRoom.setRoom(room);
+            rooms.put(roomId, serverRoom);
+        }
+
+        // Retrieve all users in this room
+        List<RoomUserRel> rels = dao.getRoomUserRelByRoomId(roomId);
+        // Build room user relationship
+        RoomUserRel rel = new RoomUserRel();
+        rel.setRoomId(roomId);
+        rel.setUserId(user.getId());
+        rel.setType(1);
+        rel.setIsReady(0);
+        if (rels.isEmpty()) {
+            rel.setPlayerIndex(0);
+            serverRoom.setUser1(serverUser);
+        } else {
+            rel.setPlayerIndex(1);
+            serverRoom.setUser2(serverUser);
+        }
+        
+        // Save the session room map
+        sessionRoomMap.put(session.getId(), roomId);
+        
+        // Save room user relationship, represents the user have joined the room
+        dao.insertRoomUserRel(rel);
+        // Send response back
+        String response = Json.createObjectBuilder()
+                .add("event", "joinRoom")
+                .add("room", serverRoom.toJSON())
+                .build().toString();
+        serverRoom.sendMessage(response);
+        
+        // Build room infomations
+        JsonArrayBuilder roomsBuilder = Json.createArrayBuilder();
+        for(ServerRoom sRoom : rooms.values()){
+            roomsBuilder.add(sRoom.toJSONObjectForPlayerCount());
+        }
+        String roomInfo = Json.createObjectBuilder()
+                .add("event", "updateRoomInfo")
+                .add("rooms", roomsBuilder.build())
+                .build().toString();
+        // Send updated room info to all end users.
+        for(Session userSession : session.getOpenSessions()){
+            if(userSession.isOpen() && !sessionRoomMap.keySet().contains(userSession.getId())){
+                userSession.getAsyncRemote().sendText(roomInfo);
+            }
+        }
+    }
+    
     private void getReady(JsonObject request) {
         Long roomId = request.getJsonNumber("roomId").longValue();
         Long userId = request.getJsonObject("user").getJsonNumber("id").longValue();
@@ -180,7 +209,7 @@ public class GameController {
         // Send server room information back
         serverRoom.sendMessage(Json.createObjectBuilder()
                 .add("event", "getReady")
-                .add("room", serverRoom.toJSONString())
+                .add("room", serverRoom.toJSON())
                 .build().toString());
 
         if (serverRoom.getUser1().getIsReady() == 1 && serverRoom.getUser2().getIsReady() == 1) {
