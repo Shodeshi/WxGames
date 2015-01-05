@@ -168,7 +168,7 @@ var Chess = cc.Class.extend({
                         if (boardArr[i][this.indexY] != 0)
                             count++;
                     }
-                    if (count == 1)
+                    if (count == 1 || count == 0)
                         return true;
                     else
                         return false;

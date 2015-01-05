@@ -3,7 +3,7 @@
  */
 var WSController = WSController || {
     webSocket: null,
-    HOST: "123.57.10.169",
+    HOST: "localhost",
     //My host: 123.57.10.169
     events: {},
 

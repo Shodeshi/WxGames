@@ -18,6 +18,7 @@
         "src/GameLayer.js",
         "src/RoomScene.js",
         "src/RoomLayer.js",
+        "src/NotificationLayer.js",
         "src/InputLayer.js",
         "src/Chess.js",
         "src/WSController.js",
