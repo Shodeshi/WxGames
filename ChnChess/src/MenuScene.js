@@ -5,7 +5,7 @@ var MenuScene = cc.Scene.extend({
     onEnter: function () {
         this._super();
         this.addChild(new BackGroundLayer());
-
+//
         var startItem = cc.MenuItemFont.create("开始游戏", function (sender) {
 //            cc.director.runScene(new GameScene(input.getStr()));
             // Build login request json object
@@ -46,5 +46,6 @@ var MenuScene = cc.Scene.extend({
         var input = new InputLayer("请输入昵称");
         input.setEnableBtn(startItem);
         this.addChild(input);
+
     }
 })

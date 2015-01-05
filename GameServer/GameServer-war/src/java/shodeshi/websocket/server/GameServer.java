@@ -42,7 +42,7 @@ public class GameServer {
 
     @OnClose
     public void onClose(Session session) {
-        System.out.println("Closed: " + this + session);
+        GameController.getInstance().userExit(session);
     }
 
     @OnError

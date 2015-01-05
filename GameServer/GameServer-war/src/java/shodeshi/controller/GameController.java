@@ -7,6 +7,7 @@ package shodeshi.controller;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +76,9 @@ public class GameController {
             case "moveChess":
                 moveChess(request);
                 break;
-
+            case "exitRoom":
+                userExit(session);
+                break;
         }
     }
 
@@ -101,23 +104,23 @@ public class GameController {
                         .add("name", user.getName()));
         // Add player counts to the response
         JsonArrayBuilder roomsBuilder = factory.createArrayBuilder();
-        for(ServerRoom serverRoom : rooms.values()){
+        for (ServerRoom serverRoom : rooms.values()) {
             roomsBuilder.add(serverRoom.toJSONObjectForPlayerCount());
         }
         builder.add("rooms", roomsBuilder.build());
         // Send response back
-        session.getAsyncRemote().sendText(builder.build().toString());        
+        session.getAsyncRemote().sendText(builder.build().toString());
     }
 
-    private void joinRoom(JsonObject request, Session session){
+    private void joinRoom(JsonObject request, Session session) {
         JsonObject userJson = request.getJsonObject("user");
-        
+
         // Build database user object
         // TODO need retrieve from db?
         User user = new User();
         user.setId(userJson.getJsonNumber("id").longValue());
         user.setName(userJson.getString("name"));
-        
+
         // Build ServerUser object
         ServerUser serverUser = new ServerUser();
         serverUser.setUser(user);
@@ -151,13 +154,19 @@ public class GameController {
             rel.setPlayerIndex(0);
             serverRoom.setUser1(serverUser);
         } else {
-            rel.setPlayerIndex(1);
-            serverRoom.setUser2(serverUser);
+            // Set the index based on the existing player
+            if (rels.get(0).getPlayerIndex() == 0) {
+                rel.setPlayerIndex(1);
+                serverRoom.setUser2(serverUser);
+            } else {
+                rel.setPlayerIndex(0);
+                serverRoom.setUser1(serverUser);
+            }
         }
-        
+
         // Save the session room map
         sessionRoomMap.put(session.getId(), roomId);
-        
+
         // Save room user relationship, represents the user have joined the room
         dao.insertRoomUserRel(rel);
         // Send response back
@@ -166,10 +175,15 @@ public class GameController {
                 .add("room", serverRoom.toJSON())
                 .build().toString();
         serverRoom.sendMessage(response);
-        
+
+        // Tell the end users to update player counts
+        updateRoomInfo(session);
+    }
+
+    private void updateRoomInfo(Session session) {
         // Build room infomations
         JsonArrayBuilder roomsBuilder = Json.createArrayBuilder();
-        for(ServerRoom sRoom : rooms.values()){
+        for (ServerRoom sRoom : rooms.values()) {
             roomsBuilder.add(sRoom.toJSONObjectForPlayerCount());
         }
         String roomInfo = Json.createObjectBuilder()
@@ -177,13 +191,13 @@ public class GameController {
                 .add("rooms", roomsBuilder.build())
                 .build().toString();
         // Send updated room info to all end users.
-        for(Session userSession : session.getOpenSessions()){
-            if(userSession.isOpen() && !sessionRoomMap.keySet().contains(userSession.getId())){
+        for (Session userSession : session.getOpenSessions()) {
+            if (userSession.isOpen() && !sessionRoomMap.keySet().contains(userSession.getId())) {
                 userSession.getAsyncRemote().sendText(roomInfo);
             }
         }
     }
-    
+
     private void getReady(JsonObject request) {
         Long roomId = request.getJsonNumber("roomId").longValue();
         Long userId = request.getJsonObject("user").getJsonNumber("id").longValue();
@@ -281,6 +295,14 @@ public class GameController {
         int[][] boardArr = serverGame.getBoardArr();
 
         // TODO Check if the request is valid
+        // Game over, shuai/jiang dead
+        boolean isGameOver = false;
+        int loserIndex = -1;
+        if (boardArr[toX][toY] % 10 == 1) {
+            isGameOver = true;
+            loserIndex = (int) boardArr[toX][toY] % 100 / 10;
+        }
+
         int from = boardArr[fromX][fromY];
         boardArr[fromX][fromY] = 0;
         boardArr[toX][toY] = from;
@@ -301,12 +323,96 @@ public class GameController {
                         .build())
                 .build().toString());
 
+        if (isGameOver) {
+            // TODO should the user room relationships be saved in database?
+            List<RoomUserRel> rels = dao.getRoomUserRelByRoomId(roomId);
+            for (RoomUserRel rel : rels) {
+                rel.setIsReady(0);
+                dao.updateRoomUserRel(rel);
+            }
+
+            serverRoom.getUser1().setIsReady(0);
+            serverRoom.getUser2().setIsReady(0);
+            serverRoom.setGame(null);
+
+            serverRoom.sendMessage(Json.createObjectBuilder()
+                    .add("event", "resetGame")
+                    .add("message", loserIndex == 1 ? "红方获胜" : "黑方获胜")
+                    .add("room", serverRoom.toJSON())
+                    .build().toString());
+        }
+
         // Maintain the game infomation in database
     }
 
     public void reset() {
         rooms.clear();
-        dao.deleteRoomUserRelByRoom(1l);
+        for (int i = 1; i <= 10; i++) {
+            dao.deleteRoomUserRelByRoom((long) i);
+        }
+    }
+
+    public void userExit(Session session) {
+        Long roomId = sessionRoomMap.get(session.getId());
+        
+        if (roomId != null) {
+            sessionRoomMap.remove(session.getId());
+            
+            ServerRoom room = rooms.get(roomId);
+            ServerUser exitUser = null;
+            ServerUser otherUser = null;
+            if (room.getUser1() != null && room.getUser1().getSession().getId().equals(session.getId())) {
+                exitUser = room.getUser1();
+                room.setUser1(null);
+                otherUser = room.getUser2();
+            } else if (room.getUser2() != null) {
+                exitUser = room.getUser2();
+                room.setUser2(null);
+                otherUser = room.getUser1();
+            }
+            if (otherUser != null) {
+                otherUser.setIsReady(0);
+            }
+            // This case should not happen
+            if (exitUser == null) {
+                return;
+            }
+
+            // Update the user room relationships
+            List<RoomUserRel> rels = dao.getRoomUserRelByRoomId(roomId);
+            for (RoomUserRel rel : rels) {
+                // Delete relationship for the user who exit the game
+                if (rel.getUserId().equals(exitUser.getUser().getId())) {
+                    dao.deleteRoomUserRelById(rel.getId());
+                } // Set the other user to not ready
+                else {
+                    rel.setIsReady(0);
+                    dao.updateRoomUserRel(rel);
+                }
+            }
+
+            // If the game has already started, reset
+            if (room.getGame() != null) {
+                room.setGame(null);
+                room.sendMessage(Json.createObjectBuilder()
+                        .add("event", "resetGame")
+                        .add("message", exitUser.getUser().getName() + "退出了游戏")
+                        .add("room", room.toJSON())
+                        .build().toString());
+            } // Otherwise, just tell the user to update the information
+            else {
+                room.sendMessage(Json.createObjectBuilder()
+                        .add("event", "userExit")
+                        .add("message", exitUser.getUser().getName() + "退出了游戏")
+                        .add("room", room.toJSON())
+                        .build().toString());
+            }
+
+            // Tell the end users to update player counts
+            updateRoomInfo(session);
+            
+            // TODO improve the experience, send the player counts directly to the user who exit room
+        }
     }
 
     private void sendToOne(Session session, String message) throws IOException {

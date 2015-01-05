@@ -80,10 +80,10 @@ public class ServerRoom {
     }
 
     public void sendMessage(String message) {
-        if (user1 != null) {
+        if (user1 != null && user1.getSession().isOpen()) {
             user1.getSession().getAsyncRemote().sendText(message);
         }
-        if (user2 != null) {
+        if (user2 != null && user2.getSession().isOpen()) {
             user2.getSession().getAsyncRemote().sendText(message);
         }
     }

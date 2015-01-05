@@ -20,6 +20,7 @@ public interface GameDAO {
     public void insertRoomUserRel(RoomUserRel rel);
     public void updateRoomUserRel(RoomUserRel rel);
     public void deleteRoomUserRelByRoom(Long roomId);
+    public void deleteRoomUserRelById(Long id);
     public void insertGame(Game game);
     public void updateGame(Game game);
 }

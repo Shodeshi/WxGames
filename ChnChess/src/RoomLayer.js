@@ -28,12 +28,12 @@ var RoomLayer = cc.LayerColor.extend({
         this.playerCountLabel.y = 5;
         this.addChild(this.playerCountLabel);
 
-        var startItem = cc.MenuItemFont.create("加入", this.joinRoomRequest, this);
-        startItem.fontSize = 15;
-        startItem.fontName = "黑体";
-        startItem.color = cc.color(255, 255, 255);
+        var menuItem = cc.MenuItemFont.create("加入", this.joinRoomRequest, this);
+        menuItem.fontSize = 15;
+        menuItem.fontName = "黑体";
+        menuItem.color = cc.color(255, 255, 255);
 
-        var menu = new cc.Menu(startItem);
+        var menu = new cc.Menu(menuItem);
 //        menu.anchorX = 1;
 //        menu.anchorY = 0;
         menu.x = this.width - 18;

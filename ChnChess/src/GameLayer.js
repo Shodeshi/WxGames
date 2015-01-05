@@ -12,12 +12,20 @@ var GameLayer = cc.Layer.extend({
     selectedSprite: null,
     previousChess: null,
     previousPosition: null,
+    isMoving: 0,
 
-    ctor: function () {
+    ctor: function (roomId) {
         this._super();
-        this.init();
+        this.init(roomId);
     },
-    init: function () {
+    init: function (roomId) {
+
+        // 添加棋盘
+        var board = cc.Sprite.create(res.chessBoard);
+        board.anchorX = 0;
+        board.anchorY = 0;
+        this.addChild(board);
+
         // 初始化棋盘数组
         this.boardArr = new Array();
         for (var i = 0; i < 9; i++) {
@@ -26,11 +34,6 @@ var GameLayer = cc.Layer.extend({
                 this.boardArr[i][j] = 0;
             }
         }
-
-        var board = cc.Sprite.create(res.chessBoard);
-        board.anchorX = 0;
-        board.anchorY = 0;
-        this.addChild(board);
 
         for (var i = 0; i < initArr.length; i++) {
 
@@ -41,6 +44,32 @@ var GameLayer = cc.Layer.extend({
             this.boardArr[indexX][indexY] = chess;
             this.addChild(chess.sprite);
         }
+
+        var roomIdLabel = cc.LabelTTF.create("房间号：" + roomId, "黑体", 15);
+        roomIdLabel.anchorX = 0;
+        roomIdLabel.anchorY = 0;
+        roomIdLabel.x = board.x + board.width + 5;
+        roomIdLabel.y = cc.winSize.height - roomIdLabel.height - 5;
+        this.addChild(roomIdLabel);
+
+        var menuItem = cc.MenuItemFont.create("退出房间", function(){
+            cc.director.runScene(new RoomScene());
+
+            var request = new Object();
+            request["event"] = "exitRoom";
+            request["user"] = Game.myUserObj;
+            WSController.sendMessage(JSON.stringify(request));
+        }, this);
+        menuItem.fontSize = 15;
+        menuItem.fontName = "黑体";
+        menuItem.color = cc.color(255, 255, 255);
+
+        var menu = new cc.Menu(menuItem);
+        menu.anchorX = 1;
+        menu.anchorY = 1;
+        menu.x = cc.winSize.width - 35;
+        menu.y = cc.winSize.height - 13;
+        this.addChild(menu);
 
         this.blackPlayerLabel = cc.LabelTTF.create("黑方: ", "黑体", 15);
         this.blackPlayerLabel.anchorX = 0;
@@ -53,7 +82,7 @@ var GameLayer = cc.Layer.extend({
         this.redPlayerLabel.anchorX = 0;
         this.redPlayerLabel.anchory = 0;
         this.redPlayerLabel.x = board.x + board.width + 5;
-        this.redPlayerLabel.y = cc.winSize.height - this.redPlayerLabel.height;
+        this.redPlayerLabel.y = cc.winSize.height - this.redPlayerLabel.height - 25;
         this.addChild(this.redPlayerLabel);
 
         this.blackPlayerStatus = cc.LabelTTF.create("未准备", "黑体", 15);
@@ -283,12 +312,41 @@ var GameLayer = cc.Layer.extend({
 
 
                 // Run the moving animation
+                this.isMoving = 1;
+                var that = this;
                 var action = cc.moveTo(0.5, cc.p(START_X + toX * DISTANCE, START_Y + toY * DISTANCE));
-                fromChess.sprite.runAction(action);
+                var callback = cc.callFunc(function(){
+                    that.isMoving = 0;
+                }, this);
+                var sequence = cc.sequence(action, callback);
+                fromChess.sprite.runAction(sequence);
             }
 
             // Set next turn
             Game.nextTurn = response["nextTurn"];
         }
+    },
+
+    reset: function(){
+        // Clean all the chess
+        for (var i = 0; i < 9; i++) {
+            for (var j = 0; j < 10; j++) {
+                if(this.boardArr[i][j] != 0)
+                    this.boardArr[i][j].destroy();
+                this.boardArr[i][j] = 0;
+            }
+        }
+
+        // Init the board with unknown chess
+        for (var i = 0; i < initArr.length; i++) {
+
+            var indexX = initArr[i][0];
+            var indexY = initArr[i][1];
+
+            var chess = new Chess(indexX, indexY, ChessType.unknown);
+            this.boardArr[indexX][indexY] = chess;
+            this.addChild(chess.sprite);
+        }
     }
+
 });

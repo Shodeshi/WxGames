@@ -375,4 +375,29 @@ public class DefaultGameDAO implements GameDAO {
         }
     }
 
+    @Override
+    public void deleteRoomUserRelById(Long id) {
+        Connection conn = connectionFactory.getConnection();
+        PreparedStatement stat = null;
+
+        try {
+            stat = conn.prepareStatement("delete from room_user_rel where id = ?");
+            stat.setLong(1, id);
+            stat.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(DefaultGameDAO.class.getName()).log(Level.SEVERE, "Exception occured while executing sql in addUser", ex);
+        } finally {
+            try {
+                if (stat != null) {
+                    stat.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(DefaultGameDAO.class.getName()).log(Level.SEVERE, "Exception occured while closing connection in addUser", ex);
+            }
+        }
+    }
+
 }
