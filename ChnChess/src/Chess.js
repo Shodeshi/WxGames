@@ -4,8 +4,8 @@
 var Chess = cc.Class.extend({
     sprite: null,
     chessType: null,
-    indexX:null,
-    indexY:null,
+    indexX: null,
+    indexY: null,
     isSelected: null,
 
     ctor: function (indexX, indexY, chessType) {
@@ -54,14 +54,14 @@ var Chess = cc.Class.extend({
 //        cc.eventManager.addListener(listener, this.sprite);
     },
 
-    addToParent: function(parent){
+    addToParent: function (parent) {
         parent.addChild(this.sprite);
         parent.addChild(this.selectedSprite);
     },
 
-    showChess: function(chessType){
+    showChess: function (chessType) {
         var type;
-        switch(chessType){
+        switch (chessType) {
             case ChessType.bjiang.index:
                 type = ChessType.bjiang;
                 break;
@@ -111,17 +111,122 @@ var Chess = cc.Class.extend({
         this.sprite.setScale(0.5);
     },
 
-    moveTo: function(x, y){
+    moveTo: function (x, y) {
         this.sprite.x = x;
         this.sprite.y = y;
     },
 
-    moveToIndex: function(indexX, indexY){
+    moveToIndex: function (indexX, indexY) {
         this.sprite.x = START_X + indexX * DISTANCE;
         this.sprite.y = START_Y + indexY * DISTANCE;
     },
 
-    destroy: function(){
+    isValidMoving: function (indexX, indexY, boardArr) {
+        var moveX = indexX - this.indexX;
+        var moveY = indexY - this.indexY;
+        switch (this.chessType.index % 10) {
+            // 将
+            case 1:
+                if ((Math.abs(moveX) == 1 && moveY == 0) || (Math.abs(moveY) == 1 && moveX == 0))
+                    return true;
+                else
+                    return false;
+                break;
+            // 车
+            case 2:
+                if ((Math.abs(moveX) > 0 && moveY == 0) || (Math.abs(moveY) > 0 && moveX == 0))
+                    return true;
+                else
+                    return false;
+                break;
+            // 马
+            case 3:
+                if (Math.abs(moveX * moveY) == 2
+                    && ((moveX == 2 && boardArr[this.indexX + 1][this.indexY] == 0)
+                    || (moveX == -2 && boardArr[this.indexX - 1][this.indexY] == 0)
+                    || (moveY == 2 && boardArr[this.indexX][this.indexY + 1] == 0)
+                    || (moveY == -2 && boardArr[this.indexX][this.indexY - 1] == 0)))
+                    return true;
+                else
+                    return false;
+                break;
+            // 炮
+            case 4:
+                if (Math.abs(moveX) > 0 && moveY == 0) {
+                    var startIndex;
+                    var endIndex;
+                    var count = 0;
+                    if (moveX > 0) {
+                        startIndex = this.indexX + 1;
+                        endIndex = indexX - 1;
+                    }
+                    else {
+                        startIndex = indexX + 1;
+                        endIndex = this.indexX - 1;
+                    }
+                    for (var i = startIndex; i <= endIndex; i++) {
+                        if (boardArr[i][this.indexY] != 0)
+                            count++;
+                    }
+                    if (count == 1)
+                        return true;
+                    else
+                        return false;
+                }
+                else if (Math.abs(moveY) > 0 && moveX == 0) {
+                    var startIndex;
+                    var endIndex;
+                    var count = 0;
+                    if (moveY > 0) {
+                        startIndex = this.indexY + 1;
+                        endIndex = indexY - 1;
+                    }
+                    else {
+                        startIndex = indexY + 1;
+                        endIndex = this.indexY - 1;
+                    }
+                    for (var i = startIndex; i <= endIndex; i++) {
+                        if (boardArr[this.indexX][i] != 0)
+                            count++;
+                    }
+                    if (count == 1 || count == 0)
+                        return true;
+                    else
+                        return false;
+                }
+                else
+                    return false;
+                break;
+            // 象
+            case 5:
+                if (Math.abs(moveX) == 2 && Math.abs(moveY) == 2 && boardArr[this.indexX + 2 / moveX][this.indexY + 2 / moveY] == 0)
+                    return true;
+                else
+                    return false;
+                break;
+            // 士
+            case 6:
+                if (Math.abs(moveX) == 1 && Math.abs(moveY) == 1)
+                    return true;
+                else
+                    return false;
+                break;
+            // 卒
+            case 7:
+                if ((Math.abs(moveX) == 1 && moveY == 0)
+                    // 黑棋向上
+                    || (moveY == 1 && moveX == 0 && this.chessType.index == 17)
+                    // 白棋向下
+                    || (moveY == -1 && moveX == 0 && this.chessType.index == 27))
+                    return true;
+                else
+                    return false;
+                break;
+        }
+
+    },
+
+    destroy: function () {
         this.sprite.removeFromParent();
         this.sprite = undefined;
     }

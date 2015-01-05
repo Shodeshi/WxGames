@@ -115,6 +115,13 @@ var GameLayer = cc.Layer.extend({
                 var indexX = Math.round((location.x - START_X) / DISTANCE);
                 var indexY = Math.round((location.y - START_Y) / DISTANCE);
 
+                // Check if moving is valid
+                if(!chess.isValidMoving(indexX, indexY, selfPointer.boardArr)){
+                    cc.log("~~");
+                    chess.moveToIndex(chess.indexX, chess.indexY);
+                    return;
+                }
+
                 // When the end position already has one chess
                 var endChess = selfPointer.boardArr[indexX][indexY]
                 if (endChess) {
